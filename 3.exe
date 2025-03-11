@@ -1,0 +1,36 @@
+# 3.exe
+
+###### Solved by @beatriz-a-cardozo & @CupNudous
+> Este desafio é baseado em conceitos de reverse engineering.
+
+## About the Challenge
+
+O desafio '3.exe' não possui enunciado, apenas o arquivo executável.
+
+## Solution
+
+A extensão do arquivo ``3.exe`` indica que é um executável no Windows, ao tentar rodar o código em uma máquina de Windows11, ele é executado e pede uma senha. Ao inserir qualquer valor, o terminal fecha e não fornece nenhuma informação além do que: **o objetivo é achar a senha**.
+
+Portanto, o próximo passo é analisar o código, mas como é um arquivo executável é necessário usar o **Ghidra**. Ao abrir o arquivo no software, é exibido um código enorme com várias funções, e tentar analisar todas apenas dificultaria o processo, então é mais eficiente procurar pela função que pede a senha.
+
+[![imagem-2025-03-11-180123948.png](https://i.postimg.cc/9MXbmn5C/imagem-2025-03-11-180123948.png)](https://postimg.cc/B8yHNNnV)
+
+Finalmente, em uma das últimas funções, a ``FUN_14000b1f0()``, é possível observar que ela recebe uma entrada de dados com variável 'local_27' e a compara com a variável '_Str2'. Na linha abaixo, há um trecho do código que mostra o que é a _Str2 e o que está armazenada nela:
+
+> _Str2 = (char *)FUN_14000148a("\"gpPGcG*+wBq}b]VP[Zdy$ej\\jyj\"g",0x13);
+
+Neessa linha, está sendo chamado uma outra função ``FUN_14000148a()`` com os parâmetros: uma string aleatória, junto com um byte '0x13'. A imagem abaixo mostra o que está acontecendo nessa função:
+
+[![imagem-2025-03-11-190048276.png](https://i.postimg.cc/MpqSS1Kx/imagem-2025-03-11-190048276.png)](https://postimg.cc/N5JV89HP)
+
+Ao analisar a função, é possível ver que ela realiza uma **encriptação XOR** na string (param_1) usando o byte (param_2) como chave. Logo, para encontrar a senha, é necessário fazer um XOR usando a string '\"gpPGcG*+wBq}b]VP[Zdy$ej\\jyj\"g' com a chave '0x13'. Utilizando o CyberChef, é fácil obter a senha:
+
+[![imagem-2025-03-11-192429707.png](https://i.postimg.cc/VNXnCQPX/imagem-2025-03-11-192429707.png)](https://postimg.cc/McKvCLTG)
+
+> A senha é: 1tcCTpT98dQbnqNECHIwj7vyOOyjyO1t
+
+Para confirmar isso, é necessário rodar o código e inserir a senha, verficando se há o retorno de 'Correct password!', mas executando no Windows, o terminal simplesmente fecha. Então, para executar usando o Kali Linux, é necessário usar o comando ``wine 3.exe``, que serve para executar arquivos '.exe' em outros sistemas operacionais. Com isso:
+
+[![Captura-de-tela-2025-03-10-202421.png](https://i.postimg.cc/G3KPKC8Q/Captura-de-tela-2025-03-10-202421.png)](https://postimg.cc/hhJ74N0z)
+
+> A flag é 'Correct Password'
